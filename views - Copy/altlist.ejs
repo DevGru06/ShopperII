@@ -1,0 +1,57 @@
+<%- include("header") -%>
+
+<main role="main" class="container">
+
+  <div class="">
+
+  </div>
+  <!-- search box -->
+  <div class="accordion" id="accordionExample">
+    <div class="card">
+      <div class="marginBgone card-header" id="headingOne">
+        <button class="card-button btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Search
+        </button>
+      </div>
+      <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+        <div class="marginBgone card-body">
+          <form class="marginBgone form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- removed badge list stuff -->
+
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <!-- remove header -->
+
+          <form class="header" action="/list/sortMe" method="post">
+            <th class="item">Item
+              <button class="btn btn-primary sm" type="submit" name="title" value="1"><img class="img-sm" src="sort-26.png" alt="SomeAlternateText"></button>
+              <!-- removed second header -->
+          </form>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(list != null) { %>
+        <% list.forEach(function(i) { %>
+        <tr>
+          <!-- <form class="useChecked" action="/item/add" method="post"> -->
+          <td>
+            <a class="nav-link" href=<%="/lists/" + i %>>
+              <%=i%>
+            </a>
+          </td>
+          <!-- removed second column -->
+          <!-- </form> -->
+          <% }); %>
+          <% } %>
+      </tbody>
+    </table>
+</main><!-- /.container -->
+
+<%- include("footer") -%>

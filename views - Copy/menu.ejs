@@ -1,0 +1,35 @@
+<%- include("header") -%>
+
+<main role="main" class="container">
+  <div class="row">
+    <div class="col-sm">
+      <form class="activelist" action="/activelist" method="GET">
+        <button type="submit" class="btn border  btn-lg btn-block ">Active Lists</button>
+      </form>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      <form class="activelist" action="/list" method="GET">
+        <button type="submit" class="btn border  btn-lg btn-block ">Shop</button>
+
+      </form>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      <form class="activelist" action="/list" method="GET">
+        <button type="submit" class="btn border  btn-lg btn-block ">History</button>
+      </form>
+    </div>
+    <div class="col-sm">
+      <form class="activelist" action="/title" method="GET">
+        <button type="submit" class="btn border  btn-lg btn-block ">Make List</button>
+
+      </form>
+    </div>
+  </div>
+
+</main><!-- /.container -->
+
+<%- include("footer") -%>

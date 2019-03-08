@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    <%= pInfo.title %>
+  </title>
+
+  <!-- Bootstrap core CSS -->
+  <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
+  <link rel="stylesheet" href="/CSS/bootstrap-solar.min.css">
+  <link rel="stylesheet" href="/CSS/bootstrap-solar.css">
+
+  <!-- Custom styles for this template -->
+  <link href="/CSS/master.css" rel="stylesheet">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+    <a class="navbar-brand" href="#">
+      <%= pInfo.title %></a>
+
+    <div class="row">
+      <% if(pInfo.btTwo.button) { %>
+      <form class="form-inline my-2 my-lg-0 myMargin" method="get" action=<%=pInfo.btTwo.buttonLink %>>
+        <button type="submit" class="btn btn-secondary">
+          <%= pInfo.btTwo.buttonTitle %></button>
+      </form>
+      <% } %>
+
+      <% if(pInfo.btOne.button) { %>
+      <form class="form-inline my-2 my-lg-0 myMargin" method="get" action=<%=pInfo.btOne.buttonLink %>>
+        <button type="submit" class="btn btn-secondary">
+          <%= pInfo.btOne.buttonTitle %></button>
+      </form>
+      <% } %>
+    </div>
+  </nav>
