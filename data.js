@@ -76,13 +76,24 @@ module.exports = {
     Save: function(id, title, badgelist, closed) {
       return new Promise(function(resolve, reject) {
 
-            if (id.length > 0) {
-              MainList.find({
-                _id: id
-              }, function(err, arr) {
+        console.log(id, title, badgelist, closed);
+
+        // console.log("id.length > 0", id);
+
+            if (id.toString().length > 0) {
+              console.log("updateOne");
+
+              MainList.findById(id, function (err, list) {
                 if (err) {
                   console.log(err);
                 } else {
+                  list.checkedDate = Date.now();
+                  list.closed = closed;
+                  list.save();
+                }
+              });
+            } else {
+
                   const newb = new MainList({
                     name: title,
                     createdDate: Date.now(),
@@ -92,9 +103,7 @@ module.exports = {
                   });
                   newb.markModified('listitem');
                   newb.save();
-                  resolve(newb);
-                } // else
-              }); // function);
+                  
             } //mainlist
           });// promise
         }, // end function

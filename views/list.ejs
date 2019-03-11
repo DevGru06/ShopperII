@@ -101,11 +101,8 @@
           <th class="item">Item
             <button class="btn btn-primary sm" type="submit" name="title" value="1"><img class="img-sm" src="/sort-26.png" alt="SomeAlternateText"></button>
 
-            <%if(!pInfo.isShopping){ %>
-          <th class="type" name="col">Type
-            <%  } else { %>
-          <th class="type" name="col">Qty
-            <%  } %>
+          <th class="type" name="col">
+            <%= pInfo.secondHeading %>
             <button class="btn btn-primary sm" type="submit" name="title" value="2"><img class="img-sm" src="/sort-26.png" alt="SomeAlternateText"></button>
         </form>
       </tr>
@@ -123,30 +120,41 @@
           <% } %>
         </form>
 
-        <%if(pInfo.useChecked){ %>
         <td>
           <%=i.item%>
         </td>
-        <%  } else { %>
-        <td>
-            <%=i.item%>
-        </td>
-        <% } %>
 
-        <%if(!pInfo.isShopping){ %>
-        <td>
+
+        <% switch (pInfo.opState) {
+           case 0: %>
+        <td class="type">
           <%=i.type%>
         </td>
-        <%  } else { %>
-        <td>
+        <% break; case 1: %>
+        <td class="quantity">
           <%=i.quantity%>
         </td>
-        <%  } %>
+        <% break; case 2:  %>
+        <td class="date">
+          <%=i.date%>
+        </td>
+        <% break; %>
+        <% } %>
+
 
         <% } %>
         <% });} %>
     </tbody>
   </table>
 </main><!-- /.container -->
+
+
+
+
+
+
+
+
+
 
 <%- include("footer") -%>

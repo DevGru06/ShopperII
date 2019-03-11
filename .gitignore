@@ -8,6 +8,9 @@ yarn-error.log*
 html/
 .env
 
+#my iggy stuff
+iggy/
+
 # Runtime data
 pids
 *.pid

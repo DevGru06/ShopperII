@@ -57,7 +57,11 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// const viewState = [];
+const opstate = {
+  LIST: 0,
+  SHOPPING: 1,
+  HISTORY: 2
+}
 
 // all to add an item
 var CurrID = "";
@@ -67,7 +71,16 @@ var CurrList = [];
 var TempBadge = [];
 
 var ListOLists = [];
-var IsShopping = false;
+var IsShopping = opstate.LIST;
+
+
+
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function DateHelper(date, callback) {
+  const d = date.getDate() + months[date.getMonth() + 1] + date.getFullYear();
+  // console.log("date", date, "d", d);
+  callback(d);
+}
 
 //**********************************************************************
 let port = process.env.PORT;
@@ -88,11 +101,9 @@ app.get("/error", function(req, res) {
     buttonTitle: "",
   });
 });
-
 app.get("/", function(req, res) {
   res.render("login.ejs");
 });
-
 app.get("/signin", function(req, res) {
 
   // const user = new User({
@@ -112,12 +123,10 @@ app.get("/signin", function(req, res) {
 
   res.render("signin.ejs");
 });
-
 app.get("/logout", function(req, res) {
   req.logout();
   res.redirect("/");
 });
-
 app.post("/register", function(req, res) {
   res.render("register.ejs");
   // User.register({username: req.body.username}, req.body.password, function(err, user) {
@@ -143,16 +152,17 @@ app.all("/menu", function(req, res) {
   CurrBadge.length = 0;
   CurrList.length = 0;
   TempBadge.length = 0;
-  IsShopping = false;
+  IsShopping = opstate.LIST;
 
   const page = {
     page: "menu.ejs",
     title: "Menu",
+    secondHeading: "Type",
     alert: "",
     btOne: {
-      button: false,
-      buttonLink: "",
-      buttonTitle: ""
+      button: true,
+      buttonLink: "/logout",
+      buttonTitle: "Logout"
     },
     btTwo: {
       button: false,
@@ -160,6 +170,7 @@ app.all("/menu", function(req, res) {
       buttonTitle: ""
     },
     useChecked: false,
+    opState: opstate.LIST,
     bdList: null,
     List: null
   }
@@ -176,6 +187,7 @@ app.all("/title", function(req, res) {
   const page = {
     page: "title.ejs",
     title: "Title",
+    secondHeading: "Type",
     alert: "",
     btOne: {
       button: true,
@@ -216,6 +228,7 @@ app.post("/title/itemlist", function(req, res) {
         const page = {
           page: "list.ejs",
           title: selection,
+          secondHeading: "Type",
           alert: "",
           btOne: {
             button: true,
@@ -228,7 +241,7 @@ app.post("/title/itemlist", function(req, res) {
             buttonTitle: ""
           },
           useChecked: true,
-          isShopping: false,
+          opState: opstate.LIST,
           bdList: null,
           List: CurrList
         }
@@ -245,10 +258,53 @@ app.post("/title/itemlist", function(req, res) {
 // gets info: Item to add - edits CurrList.checked
 app.post('/item/add', function(req, res) {
   const selection = req.body.checkbox;
-  var title = "";
+  // var title = "";
+  console.log("IsShopping", IsShopping);
 
-  if (IsShopping) {
-    console.log("called");
+
+  switch(IsShopping){
+    case opstate.LIST:
+    if (CurrList != null) {
+      CurrList.find(function(found) {
+        if (found._id.toString() === selection) {
+          found.checked = true;
+          newvar = {
+            itemID: found._id,
+            item: found.item,
+            quantity: 0,
+            type: found.type
+          }
+          TempBadge = newvar;
+          title = found.item;
+
+          const page = {
+            page: "quantity.ejs",
+            title: title,
+            secondHeading: "Type",
+            alert: "",
+            btOne: {
+              button: true,
+              buttonLink: "back",
+              buttonTitle: "Back"
+            },
+            btTwo: {
+              button: false,
+              buttonLink: "",
+              buttonTitle: ""
+            },
+            useChecked: false,
+            bdList: null,
+            List: CurrList
+          }
+          // console.log("add", page);
+          res.render("quantity.ejs", {
+            pInfo: page
+          });
+        }
+      });
+    }
+    break;
+    case opstate.SHOPPING:
     CurrList.find(function(found) {
       if (found._id.toString() === selection) {
         found.checked = true;
@@ -265,6 +321,7 @@ app.post('/item/add', function(req, res) {
         const page = {
           page: "list.ejs",
           title: CurrTitle,
+          secondHeading: "Type",
           alert: "",
           btOne: {
             button: true,
@@ -274,10 +331,10 @@ app.post('/item/add', function(req, res) {
           btTwo: {
             button: true,
             buttonLink: "/save/close",
-            buttonTitle: "Save"
+            buttonTitle: "Close"
           },
           useChecked: true,
-          isShopping: false,
+          opState: opstate.LIST,
           bdList: CurrBadge,
           List: CurrList
         }
@@ -287,48 +344,141 @@ app.post('/item/add', function(req, res) {
         });
       }
     });
-  } else {
-    if (selection.length > 0) {
-      if (CurrList != null) {
-        CurrList.find(function(found) {
-          if (found._id.toString() === selection) {
-            found.checked = true;
-            newvar = {
-              itemID: found._id,
-              item: found.item,
-              quantity: 0,
-              type: found.type
-            }
-            TempBadge = newvar;
-            title = found.item;
+    break;
+    case opstate.HISTORY:
+    DB.mainL.find(function(idx) {
+      console.log("idx", idx);
 
-            const page = {
-              page: "quantity.ejs",
-              title: title,
-              alert: "",
-              btOne: {
-                button: true,
-                buttonLink: "back",
-                buttonTitle: "Back"
-              },
-              btTwo: {
-                button: false,
-                buttonLink: "",
-                buttonTitle: ""
-              },
-              useChecked: false,
-              bdList: null,
-              List: CurrList
+      if (idx._id.toString() === selection) {
+        console.log("idx._id", idx._id);
+
+        CurrTitle = idx.name;
+
+        const templist = DB.itemL.slice();
+        templist.forEach(function(cl) { // full list
+          idx.listitem.forEach(function(bdg) { // list from selection (Badge)
+            if (bdg.item === cl.item) {
+              cl.checked = true; // set those in main list to checked
             }
-            // console.log("add", page);
-            res.render("quantity.ejs", {
-              pInfo: page
-            });
-          }
+          });
+        });
+        CurrList = templist;
+        CurrBadge = idx.listitem;
+
+        const page = {
+          page: "list.ejs",
+          title: CurrTitle,
+          secondHeading: "Type",
+          alert: "",
+          btOne: {
+            button: true,
+            buttonLink: "/menu", // back to list display
+            buttonTitle: "Back"
+          },
+          btTwo: {
+            button: true,
+            buttonLink: "/save/list", // this gets called somewhere else, but needs to update, new function?
+            buttonTitle: "Save"
+          },
+          useChecked: true,
+          opState: opstate.LIST,
+          bdList: CurrBadge,
+          List: CurrList
+        }
+        res.render("list.ejs", {
+          pInfo: page
         });
       }
-    }
-  } // else
+    });
+    break;
+    default:
+  }
+
+  // if (IsShopping === opstate.SHOPPING) {
+  //   CurrList.find(function(found) {
+  //     if (found._id.toString() === selection) {
+  //       found.checked = true;
+  //       newvar = {
+  //         itemID: found._id,
+  //         item: found.item,
+  //         quantity: found.quantity,
+  //         type: found.type
+  //       }
+  //       TempBadge = newvar;
+  //       CurrBadge.push(TempBadge);
+  //       TempBadge = [];
+  //
+  //       const page = {
+  //         page: "list.ejs",
+  //         title: CurrTitle,
+  //         secondHeading: "Type",
+  //         alert: "",
+  //         btOne: {
+  //           button: true,
+  //           buttonLink: "/menu",
+  //           buttonTitle: "Back"
+  //         },
+  //         btTwo: {
+  //           button: true,
+  //           buttonLink: "/save/close",
+  //           buttonTitle: "Close"
+  //         },
+  //         useChecked: true,
+  //         opState: opstate.LIST,
+  //         bdList: CurrBadge,
+  //         List: CurrList
+  //       }
+  //       // console.log("newitem", page);
+  //       res.render("list.ejs", {
+  //         pInfo: page
+  //       });
+  //     }
+  //   });
+  // } else {
+    // if (selection.length > 0) {
+    //   console.log("selection", selection);
+    //
+    //   if (CurrList != null) {
+    //     CurrList.find(function(found) {
+    //       if (found._id.toString() === selection) {
+    //         found.checked = true;
+    //         newvar = {
+    //           itemID: found._id,
+    //           item: found.item,
+    //           quantity: 0,
+    //           type: found.type
+    //         }
+    //         TempBadge = newvar;
+    //         title = found.item;
+    //
+    //         const page = {
+    //           page: "quantity.ejs",
+    //           title: title,
+    //           secondHeading: "Type",
+    //           alert: "",
+    //           btOne: {
+    //             button: true,
+    //             buttonLink: "back",
+    //             buttonTitle: "Back"
+    //           },
+    //           btTwo: {
+    //             button: false,
+    //             buttonLink: "",
+    //             buttonTitle: ""
+    //           },
+    //           useChecked: false,
+    //           bdList: null,
+    //           List: CurrList
+    //         }
+    //         // console.log("add", page);
+    //         res.render("quantity.ejs", {
+    //           pInfo: page
+    //         });
+    //       }
+    //     });
+    //   }
+    // }
+  // } // else
 });
 // comes from: QUANTITY.EJS
 // goes to: LIST.EJS
@@ -356,6 +506,7 @@ app.post("/item/newItem", function(req, res) {
     const page = {
       page: "list.ejs",
       title: CurrTitle,
+      secondHeading: "Type",
       alert: "",
       btOne: {
         button: true,
@@ -368,7 +519,7 @@ app.post("/item/newItem", function(req, res) {
         buttonTitle: "Save"
       },
       useChecked: true,
-      isShopping: false,
+      opState: opstate.LIST,
       bdList: CurrBadge,
       List: CurrList
     }
@@ -382,9 +533,9 @@ app.post("/item/newItem", function(req, res) {
 // goes to: LIST.EJS
 // gets info: Saves the whole list
 app.all("/save/list", function(req, res) {
-  console.log("CurrBadge", CurrBadge);
+  // console.log("CurrBadge", CurrBadge);
   DB.Save(CurrID, CurrTitle, CurrBadge, false).then(function(confirm) {
-    console.log("savelist-confirm", confirm);
+    // console.log("savelist-confirm", confirm);
   }).catch(function(err) {
     if (err) {
       console.log("/save/list", err);
@@ -405,7 +556,7 @@ app.get("/activelist", function(req, res) {
 
   if (DB.mainL.length > 0) {
     DB.mainL.forEach(function(i) {
-      console.log(i);
+      // console.log(i);
       if (!i.closed) {
         ListOLists.push(i);
       }
@@ -413,6 +564,7 @@ app.get("/activelist", function(req, res) {
     const page = {
       page: "altlist.ejs",
       title: "Shopping List",
+      secondHeading: "",
       alert: "",
       btOne: {
         button: true,
@@ -442,15 +594,19 @@ app.get("/activelist", function(req, res) {
 app.get("/lists/:which", function(req, res) {
   const which = req.params.which;
 
-  if (IsShopping) {
+  if (IsShopping === opstate.SHOPPING) {
     DB.mainL.find(function(idx) {
       CurrList = idx.listitem.slice();
+      // console.log("IsShopping1", idx._id.toString(), which);
 
-      if (idx.name === which) {
-        console.log("IsShopping", IsShopping);
+      if (idx._id.toString() === which) {
+        // console.log("IsShopping2", IsShopping);
+        CurrTitle = idx.name;
+        CurrID = idx._id;
         const page = {
           page: "list.ejs",
           title: CurrTitle,
+          secondHeading: "Type",
           alert: "",
           btOne: {
             button: true,
@@ -459,11 +615,11 @@ app.get("/lists/:which", function(req, res) {
           },
           btTwo: {
             button: true,
-            buttonLink: "/list/close",
+            buttonLink: "/save/close",
             buttonTitle: "Close"
           },
           useChecked: true,
-          isShopping: true,
+          opState: SHOPPING,
           bdList: null,
           List: CurrList
         }
@@ -476,7 +632,7 @@ app.get("/lists/:which", function(req, res) {
 
     DB.mainL.find(function(idx) {
 
-      console.log("searching", typeof(idx._id), typeof(which));
+      // console.log("searching", typeof(idx._id), typeof(which));
 
       if (idx._id.toString() === which) {
         // console.log("found");
@@ -488,6 +644,7 @@ app.get("/lists/:which", function(req, res) {
         const page = {
           page: "list.ejs",
           title: CurrTitle,
+          secondHeading: "Type",
           alert: "",
           btOne: {
             button: true,
@@ -500,7 +657,7 @@ app.get("/lists/:which", function(req, res) {
             buttonTitle: "Edit"
           },
           useChecked: false,
-          isShopping: false,
+          opState: opstate.LIST,
           bdList: null,
           List: CurrList
         }
@@ -533,6 +690,7 @@ app.get("/list/edit", function(req, res) {
       const page = {
         page: "list.ejs",
         title: CurrTitle,
+        secondHeading: "Type",
         alert: "",
         btOne: {
           button: true,
@@ -545,7 +703,7 @@ app.get("/list/edit", function(req, res) {
           buttonTitle: "Save"
         },
         useChecked: true,
-        isShopping: false,
+        opState: opstate.LIST,
         bdList: CurrBadge,
         List: CurrList
       }
@@ -560,29 +718,40 @@ app.get("/list/edit", function(req, res) {
 // goes to: REDIRECT TO /ACTIVELIST
 // gets info: None
 app.get("/activelistS", function(req, res) {
-  IsShopping = true;
+  IsShopping = opstate.SHOPPING;
 
   res.redirect("/activelist");
 });
 //**********************************************************************
-
-
 // comes from: MENU.EJS
 // goes to: LIST.EJS
 // gets info: None
 app.get("/historylist", function(req, res) {
   ListOLists.length = 0;
+  IsShopping = opstate.HISTORY;
 
   if (DB.mainL.length > 0) {
     DB.mainL.forEach(function(i) {
       if (i.closed) {
-        ListOLists.push(i.name);
+        var meDate = "";
+        DateHelper(i.checkedDate, function(date) {
+           meDate = date;
+         });
+
+        const val = {
+          _id: i._id,
+          item: i.name,
+          date: meDate
+        }
+        ListOLists.push(val);
+        console.log("ListOLists", ListOLists);
       }
-      // console.log("i.name", i.name);
+      // console.log("opstate.HISTORY", typeof(opstate.HISTORY));
     });
     const page = {
-      page: "altlist.ejs",
-      title: "Shopping List",
+      page: "list.ejs",
+      title: "History",
+      secondHeading: "Closed Date",
       alert: "",
       btOne: {
         button: true,
@@ -591,15 +760,15 @@ app.get("/historylist", function(req, res) {
       },
       btTwo: {
         button: true,
-        buttonLink: "/save/new",
-        buttonTitle: "Make New"
+        buttonLink: "/save/refresh",
+        buttonTitle: "Refresh"
       },
-      useChecked: false,
+      useChecked: true,
+      opState: opstate.HISTORY,
       bdList: null,
       List: ListOLists
     }
-    viewState.push(page);
-    res.render("altlist.ejs", {
+    res.render("list.ejs", {
       pInfo: page
     });
   } else {
@@ -607,14 +776,19 @@ app.get("/historylist", function(req, res) {
   }
 });
 
-app.post("/list/close", function(req, res) {
-  console.log("CurrBadge", CurrBadge);
+
+
+
+
+app.get("/save/close", function(req, res) {
+  // console.log("CurrID", CurrID);
   DB.Save(CurrID, CurrTitle, CurrBadge, true).then(function(confirm) {
-    console.log("savelist-confirm", confirm);
+    // console.log("savelist-confirm", confirm);
   }).catch(function(err) {
     if (err) {
       console.log("/save/list", err);
     }
+    // TODO redirect/ refresh
   });
   CurrID = "";
   CurrTitle = "";
@@ -622,13 +796,9 @@ app.post("/list/close", function(req, res) {
   CurrList.length = 0;
   res.redirect("/menu");
 });
-
-
-
-
 app.post('/item/remove', function(req, res) {
   const selection = req.body.badge;
-  console.log("selection", selection);
+  // console.log("selection", selection);
 });
 app.get("/save/refresh", function(req, res) {
   DB.RefreshServer();
