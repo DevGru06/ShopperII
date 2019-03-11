@@ -96,7 +96,7 @@ module.exports = {
                 } // else
               }); // function);
             } //mainlist
-          }
+          });// promise
         }, // end function
 
         Update: function(title, badgelist, closed) {},
